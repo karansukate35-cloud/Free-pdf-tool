@@ -1,0 +1,558 @@
+<!doctype html>
+<html lang="mr">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<meta name="color-scheme" content="light dark"/>
+<link rel="icon" href="data:,"/>
+<title>Free PDF Tools — फ्री PDF टूल्स</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;500;600;700;800&family=Archivo:wght@600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+<style>
+:root{
+  --bg:#FFF8F0; --bg2:#FFFFFF; --card:#FFFFFF; --ink:#1A1A1E; --muted:#6B7280; --line:#F0E6D8;
+  --red:#D92323; --red-d:#B91C1C; --teal:#0F766E; --amber:#F59E0B; --violet:#6D28D9; --blue:#2563EB; --pink:#DB2777; --green:#15803D;
+  --radius:18px; --shadow:0 4px 24px rgba(0,0,0,.06);
+}
+@media (prefers-color-scheme: dark){
+  :root{ --bg:#111214; --bg2:#17181A; --card:#1E1F22; --ink:#F3F4F6; --muted:#9CA3AF; --line:#2A2B2E; --shadow:0 4px 24px rgba(0,0,0,.35); }
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;font-family:"Noto Sans Devanagari",system-ui,sans-serif;background:var(--bg);color:var(--ink);line-height:1.6}
+a{color:inherit}
+button,input,select,textarea{font-family:inherit}
+button,[role="button"],select,summary{ min-height:44px; }
+.topbar{position:sticky;top:0;z-index:50;background:color-mix(in srgb, var(--bg) 88%, transparent);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+.topbar-in{max-width:1180px;margin:0 auto;padding:12px 18px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.logo{display:flex;align-items:center;gap:10px;font-family:Archivo,sans-serif;font-weight:800;font-size:20px;letter-spacing:-.02em}
+.logo-badge{width:40px;height:40px;background:var(--red);color:#fff;display:grid;place-items:center;border-radius:10px;font-size:13px;font-weight:800}
+.top-links{display:flex;gap:8px;align-items:center}
+.top-links a{text-decoration:none;font-weight:600;font-size:14px;padding:10px 14px;border-radius:999px;border:1px solid var(--line);background:var(--card);white-space:nowrap}
+.logo{white-space:nowrap}
+@media(max-width:640px){ .logo{font-size:16px} .logo-badge{width:34px;height:34px} .top-links a{padding:8px 11px;font-size:13px} .top-links a.bloglink{display:none} }
+.hero{max-width:1180px;margin:0 auto;padding:36px 18px 10px;text-align:center}
+.hero h1{font-family:Archivo,"Noto Sans Devanagari",sans-serif;font-size:clamp(32px,6vw,56px);line-height:1.05;letter-spacing:-.03em;margin:0}
+.hero h1 span{color:var(--red)}
+.hero p{max-width:680px;margin:14px auto 0;color:var(--muted);font-size:17px}
+.hero-badges{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:18px}
+.badge{font-size:13px;font-weight:700;padding:8px 12px;border-radius:999px;background:var(--card);border:1px solid var(--line)}
+.badge i{font-style:normal}
+.searchwrap{max-width:640px;margin:22px auto 0;position:relative}
+.searchwrap input{width:100%;padding:16px 20px;border-radius:999px;border:1.5px solid var(--line);background:var(--card);font-size:16px;color:var(--ink);outline:none;box-shadow:var(--shadow)}
+.searchwrap input:focus{border-color:var(--red)}
+.searchwrap svg{position:absolute;left:16px;top:50%;transform:translateY(-50%);opacity:.5}
+.stats{display:flex;gap:24px;justify-content:center;margin-top:20px;flex-wrap:wrap}
+.stat{text-align:center}.stat b{font-size:22px;display:block;line-height:1}.stat span{font-size:13px;color:var(--muted)}
+.filters{max-width:1180px;margin:28px auto 0;padding:0 18px;display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.chip{border:1px solid var(--line);background:var(--card);padding:10px 16px;border-radius:999px;font-weight:700;font-size:14px;cursor:pointer}
+.chip.active{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.grid{max-width:1180px;margin:0 auto;padding:22px 18px 10px;display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px}
+.tool-card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px;text-align:left;cursor:pointer;transition:transform .15s, box-shadow .15s;width:100%}
+.tool-card:hover{transform:translateY(-2px);box-shadow:var(--shadow)}
+.tool-ic{width:48px;height:48px;border-radius:12px;display:grid;place-items:center;color:#fff;margin-bottom:12px}
+.tool-card h3{margin:0;font-size:17px;line-height:1.3}
+.tool-card p{margin:6px 0 0;color:var(--muted);font-size:14px;line-height:1.5}
+.tool-meta{margin-top:12px;display:flex;justify-content:space-between;align-items:center;font-size:12px;font-weight:700}
+.free{color:var(--teal);background:#CCFBF1;padding:4px 8px;border-radius:999px}
+@media (prefers-color-scheme: dark){.free{background:#134E4A;color:#5EEAD4}}
+.arrow{opacity:.4}
+.how{max-width:1180px;margin:10px auto;padding:18px}
+.how-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+@media(max-width:760px){.how-grid{grid-template-columns:1fr}.grid{grid-template-columns:repeat(auto-fill,minmax(160px,1fr))}}
+.how-card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:20px}
+.how-card b{font-size:28px;color:var(--red)}
+.faq{max-width:820px;margin:0 auto;padding:10px 18px 40px}
+.faq details{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:6px 16px;margin-bottom:10px}
+.faq summary{font-weight:700;cursor:pointer;padding:10px 0}
+footer{border-top:1px solid var(--line);padding:28px 18px;text-align:center;color:var(--muted);font-size:14px}
+footer a{font-weight:700;color:var(--ink)}
+/* Workspace */
+.workspace{max-width:980px;margin:0 auto;padding:18px;display:none}
+.workspace.open{display:block}
+.ws-head{display:flex;align-items:flex-start;gap:14px;margin-bottom:16px}
+.ws-head h2{margin:0;font-size:26px;line-height:1.2}
+.ws-head p{margin:4px 0 0;color:var(--muted)}
+.backbtn{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:10px 16px;font-weight:700;cursor:pointer;white-space:nowrap}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:20px;box-shadow:var(--shadow)}
+.dropzone{border:2px dashed #D6CFC4;border-radius:16px;padding:28px 16px;text-align:center;cursor:pointer;background:var(--bg)}
+@media (prefers-color-scheme: dark){.dropzone{border-color:#3A3B3E}}
+.dropzone.drag{border-color:var(--red);background:#FEF2F2}
+.dropzone strong{font-size:17px;display:block}
+.dropzone span{color:var(--muted);font-size:14px}
+.btn{border:none;border-radius:999px;padding:12px 20px;font-weight:800;cursor:pointer;font-size:15px;display:inline-flex;align-items:center;gap:8px;justify-content:center}
+.btn-red{background:var(--red);color:#fff}.btn-red:hover{background:var(--red-d)}
+.btn-dark{background:var(--ink);color:var(--bg)}
+.btn-ghost{background:transparent;border:1.5px solid var(--line);color:var(--ink)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+.filelist{margin-top:14px;display:flex;flex-direction:column;gap:8px}
+.fileitem{display:flex;align-items:center;gap:10px;background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:10px 12px;font-size:14px}
+.fileitem b{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fileitem button{min-height:36px;border:1px solid var(--line);background:var(--card);border-radius:8px;padding:6px 10px;cursor:pointer;font-weight:700}
+label.flabel{display:block;font-weight:700;font-size:14px;margin:16px 0 6px}
+input[type=text],input[type=number],select,textarea{width:100%;padding:12px 14px;border:1.5px solid var(--line);border-radius:12px;background:var(--bg);color:var(--ink);font-size:15px}
+textarea{min-height:110px;resize:vertical}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:600px){.two{grid-template-columns:1fr}}
+.pages-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:10px;margin-top:14px}
+.page-thumb{border:2px solid var(--line);border-radius:12px;padding:6px;text-align:center;cursor:pointer;background:var(--bg)}
+.page-thumb.sel{border-color:var(--red);background:#FEF2F2}
+@media (prefers-color-scheme: dark){.page-thumb.sel{background:#2A1515}}
+.page-thumb canvas{width:100%;height:auto;border-radius:6px;display:block}
+.page-thumb span{font-size:12px;font-weight:700}
+.status{margin-top:14px;padding:12px 14px;border-radius:12px;font-size:14px;display:none}
+.status.show{display:block}
+.status.ok{background:#DCFCE7;color:#14532D}.status.err{background:#FEE2E2;color:#7F1D1D}.status.info{background:#FEF3C7;color:#78350F}
+@media (prefers-color-scheme: dark){.status.ok{background:#14532D;color:#BBF7D0}.status.err{background:#450A0A;color:#FECACA}.status.info{background:#451A03;color:#FDE68A}}
+.progress{height:8px;background:var(--line);border-radius:999px;overflow:hidden;margin-top:12px;display:none}
+.progress i{display:block;height:100%;background:var(--red);width:0%;transition:width .2s}
+.viewer{text-align:center}
+.viewer canvas{max-width:100%;height:auto;border:1px solid var(--line);border-radius:12px;background:#fff}
+.sigpad{width:100%;height:200px;border:2px dashed var(--line);border-radius:14px;background:#fff;touch-action:none;cursor:crosshair}
+video.cam{width:100%;border-radius:14px;background:#000;max-height:420px}
+.thumbrow{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.thumbrow img{width:84px;height:84px;object-fit:cover;border-radius:10px;border:1px solid var(--line)}
+.hidden{display:none!important}
+.note{font-size:13px;color:var(--muted);margin-top:8px}
+.kbd{font-size:12px;background:var(--bg);border:1px solid var(--line);padding:2px 6px;border-radius:6px}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-in">
+    <div class="logo"><span class="logo-badge">PDF</span> Free PDF Tools</div>
+    <nav class="top-links">
+      <a href="#tools">टूल्स</a>
+      <a class="bloglink" href="https://maharashtra-job-yojana.blogspot.com" target="_blank" rel="noopener">ब्लॉग ↗</a>
+      <a href="https://t.me/maharashtrajobyojana" target="_blank" rel="noopener" style="background:#229ED9;color:#fff;border-color:#229ED9">Telegram</a>
+    </nav>
+  </div>
+</header>
+
+<section class="hero" id="homeHero">
+  <h1>सर्व PDF टूल्स,<br><span>१००% फ्री.</span></h1>
+  <p>Merge, Split, Convert, Edit — २२ टूल्स एकाच ठिकाणी. तुझी फाईल सर्व्हरवर जात नाही; सगळं काम तुझ्याच फोन / कॉम्प्युटरच्या ब्राउझरमध्ये होतं. साइन-अप नाही, लिमिट नाही.</p>
+  <div class="hero-badges">
+    <span class="badge">🔒 फाईल डिव्हाइसमध्येच राहते</span>
+    <span class="badge">⚡ साइन-अप नाही</span>
+    <span class="badge">📱 मोबाईलवर चालतं</span>
+    <span class="badge">₹० — खरंच फ्री</span>
+  </div>
+  <div class="searchwrap">
+    <input id="searchInput" type="text" placeholder="🔍 टूल शोधा — उदा. Merge, JPG, Split…">
+  </div>
+  <div class="stats">
+    <div class="stat"><b>२२</b><span>फ्री टूल्स</span></div>
+    <div class="stat"><b>०</b><span>रुपये खर्च</span></div>
+    <div class="stat"><b>१००%</b><span>प्रायव्हेट — अपलोड नाही</span></div>
+  </div>
+</section>
+
+<div class="filters" id="filters"></div>
+<main class="grid" id="tools"></main>
+<p id="noResult" class="hidden" style="text-align:center;color:var(--muted);padding:20px">ते टूल सापडलं नाही. वेगळं नाव टाकून बघा.</p>
+
+<!-- WORKSPACE -->
+<section class="workspace" id="workspace">
+  <div class="ws-head">
+    <button class="backbtn" id="backBtn">← सर्व टूल्स</button>
+    <div><h2 id="wsTitle">Tool</h2><p id="wsDesc"></p></div>
+  </div>
+  <div class="panel">
+    <div id="wsBody"></div>
+    <div class="progress" id="progWrap"><i id="progBar"></i></div>
+    <div class="status" id="statusBox"></div>
+    <div id="wsResult"></div>
+  </div>
+  <p class="note" style="text-align:center;margin-top:14px">💡 टीप: मोठ्या फाईल्सना थोडा वेळ लागू शकतो. प्रक्रिया चालू असताना हे पेज बंद करू नका.</p>
+</section>
+
+<section class="how" id="howSection">
+  <h2 style="text-align:center;font-size:24px">कसं काम करतं?</h2>
+  <div class="how-grid">
+    <div class="how-card"><b>१</b><h3 style="margin:8px 0 4px">टूल निवडा</h3><p style="margin:0;color:var(--muted);font-size:14px">वरच्या यादीतून तुला हवं ते टूल निवड. Merge असो वा JPG to PDF — सगळं इथेच आहे.</p></div>
+    <div class="how-card"><b>२</b><h3 style="margin:8px 0 4px">फाईल टाका</h3><p style="margin:0;color:var(--muted);font-size:14px">फाईल ड्रॅग करा किंवा निवडा. फाईल कुठल्याही सर्व्हरवर अपलोड होत नाही.</p></div>
+    <div class="how-card"><b>३</b><h3 style="margin:8px 0 4px">डाउनलोड करा</h3><p style="margin:0;color:var(--muted);font-size:14px">एका क्लिकवर तयार फाईल डाउनलोड करा. वॉटरमार्क नाही, पेज लिमिट नाही.</p></div>
+  </div>
+</section>
+
+<section class="faq">
+  <h2 style="text-align:center;font-size:24px">नेहमीचे प्रश्न</h2>
+  <details><summary>माझी PDF फाईल सुरक्षित आहे का?</summary><p>हो. सर्व टूल्स तुझ्या ब्राउझरमध्येच चालतात (pdf-lib आणि PDF.js वापरून). फाईल आमच्या सर्व्हरवर कधीच जात नाही, त्यामुळे बँक स्टेटमेंट, आधार, मार्कशीटसारख्या खाजगी फाईल्सही सुरक्षित राहतात.</p></details>
+  <details><summary>खरंच फ्री आहे का? काही लपलेला खर्च?</summary><p>हो, १००% फ्री. साइन-अप नाही, दिवसाला लिमिट नाही, डाउनलोडवर वॉटरमार्क नाही. कारण सगळं काम तुझ्याच डिव्हाइसवर होतं — आम्हाला सर्व्हरचा खर्चच येत नाही.</p></details>
+  <details><summary>PDF to Word का नाही?</summary><p>PDF to Word / Excel सारखी रूपांतरं ब्राउझरमध्ये दर्जेदार होत नाहीत — त्यासाठी महागडे सर्व्हर लागतात. म्हणून या साइटवर फक्त तीच टूल्स आहेत जी फ्रीमध्ये खरंच चांगली चालतात.</p></details>
+  <details><summary>मोबाईलवर चालेल का?</summary><p>हो. ही साइट मोबाईल, टॅब आणि कॉम्प्युटर — तिन्हीवर चालते. PDF Scanner टूलसाठी कॅमेराची परवानगी लागेल.</p></details>
+</section>
+
+<footer>
+  <p><strong style="color:var(--ink)">Free PDF Tools</strong> — करणसाठी बनवलेली फ्री सेवा · फाईल्स ब्राउझरमध्येच प्रोसेस होतात</p>
+  <p><a href="https://maharashtra-job-yojana.blogspot.com" target="_blank" rel="noopener">महाराष्ट्र जॉब योजना ब्लॉग</a> · <a href="https://t.me/maharashtrajobyojana" target="_blank" rel="noopener">Telegram चॅनेल</a> · <a href="https://youtube.com/@aitihasik-o7n" target="_blank" rel="noopener">ऐतिहासिक YouTube</a></p>
+</footer>
+
+<input type="file" id="filePicker" class="hidden">
+
+<script>
+/* Library globals are guarded so the tool catalog always renders even if a CDN script is slow or blocked. */
+try{ if(window.pdfjsLib){ pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js'; } }catch(e){}
+const { PDFDocument, degrees, rgb, StandardFonts } = (window.PDFLib || {});
+function libsReady(){ return typeof window.PDFLib !== 'undefined' && typeof window.pdfjsLib !== 'undefined'; }
+
+/* ============ TOOL CATALOG ============ */
+const ICONS = {
+  merge:'<path d="M8 3v4H4M16 21v-4h4M3 8h4V4M21 16h-4v4" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/><rect x="9" y="9" width="6" height="6" rx="1" fill="currentColor"/>',
+  split:'<circle cx="6" cy="6" r="2.5" fill="currentColor"/><circle cx="6" cy="18" r="2.5" fill="currentColor"/><path d="M8 7.5L20 19M8 16.5L20 5" stroke="currentColor" stroke-width="2"/>',
+  img:'<rect x="3" y="5" width="18" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="9" cy="10" r="1.6" fill="currentColor"/><path d="M4 18l5-5 3 3 3-3 5 5" stroke="currentColor" stroke-width="2" fill="none"/>',
+  doc:'<path d="M6 2h8l4 4v16H6z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M9 12h6M9 16h6" stroke="currentColor" stroke-width="2"/>',
+  edit:'<path d="M4 20l1-4L16.5 4.5a2.1 2.1 0 013 3L8 19l-4 1z" fill="currentColor"/>',
+  eye:'<path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12z" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="3" fill="currentColor"/>',
+  sign:'<path d="M3 17c3-8 5-8 6 0 1-6 4-9 5-5 1 3-1 5-3 5h10" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/>',
+  lock:'<rect x="5" y="11" width="14" height="9" rx="2" fill="currentColor"/><path d="M8 11V8a4 4 0 018 0v3" stroke="currentColor" stroke-width="2" fill="none"/>',
+  cam:'<rect x="3" y="7" width="18" height="13" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="13" r="3.5" fill="currentColor"/><path d="M8 7l1.5-2.5h5L16 7" fill="currentColor"/>',
+  grid:'<rect x="4" y="4" width="7" height="7" rx="1" fill="currentColor"/><rect x="13" y="4" width="7" height="7" rx="1" fill="currentColor" opacity=".55"/><rect x="4" y="13" width="7" height="7" rx="1" fill="currentColor" opacity=".55"/><rect x="13" y="13" width="7" height="7" rx="1" fill="currentColor"/>',
+  num:'<path d="M5 20V6L3 8M11 5h8M11 10h8M11 15h8" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/>',
+  drop:'<path d="M12 3s6 6.5 6 11a6 6 0 01-12 0c0-4.5 6-11 6-11z" fill="currentColor"/>',
+  crop:'<path d="M6 2v16h16M2 6h16v16" stroke="currentColor" stroke-width="2" fill="none"/>',
+  share:'<circle cx="6" cy="12" r="2.5" fill="currentColor"/><circle cx="18" cy="6" r="2.5" fill="currentColor"/><circle cx="18" cy="18" r="2.5" fill="currentColor"/><path d="M8.2 10.8l7.6-3.6M8.2 13.2l7.6 3.6" stroke="currentColor" stroke-width="2"/>',
+  zip:'<path d="M12 3v3M12 9v3M12 15v3" stroke="currentColor" stroke-width="3"/><rect x="5" y="3" width="14" height="18" rx="2" fill="none" stroke="currentColor" stroke-width="2"/>'
+};
+const TOOLS = [
+  {id:'merge', name:'Merge PDF', desc:'अनेक PDF एकत्र जोडून एक फाईल बनवा', cat:'organize', color:'#6D28D9', icon:'merge', accept:'.pdf', multi:true},
+  {id:'split', name:'Split PDF', desc:'PDF ची पाने वेगळी करा किंवा रेंज काढा', cat:'organize', color:'#6D28D9', icon:'split', accept:'.pdf'},
+  {id:'rotate', name:'Rotate PDF', desc:'पाने ९०°, १८०° किंवा २७०° फिरवा', cat:'organize', color:'#6D28D9', icon:'grid', accept:'.pdf'},
+  {id:'delete', name:'Delete Pages', desc:'नको असलेली पाने PDF मधून काढा', cat:'organize', color:'#6D28D9', icon:'grid', accept:'.pdf'},
+  {id:'extract', name:'Extract Pages', desc:'निवडलेली पानेच नवीन PDF मध्ये घ्या', cat:'organize', color:'#6D28D9', icon:'grid', accept:'.pdf'},
+  {id:'organize', name:'Organize PDF', desc:'पानांचा क्रम बदला — पुढे / मागे करा', cat:'organize', color:'#6D28D9', icon:'grid', accept:'.pdf'},
+  {id:'jpg2pdf', name:'JPG to PDF', desc:'फोटो / इमेजेसचा एक PDF बनवा', cat:'convert', color:'#D97706', icon:'img', accept:'image/*', multi:true},
+  {id:'pdf2jpg', name:'PDF to JPG', desc:'PDF ची पाने JPG फोटोंमध्ये बदला', cat:'convert', color:'#D97706', icon:'img', accept:'.pdf'},
+  {id:'pdf2png', name:'PDF to PNG', desc:'PDF ची पाने PNG फोटोंमध्ये बदला', cat:'convert', color:'#D97706', icon:'img', accept:'.pdf'},
+  {id:'txt2pdf', name:'TXT to PDF', desc:'मजकूर किंवा .txt फाईलचा PDF बनवा', cat:'convert', color:'#2563EB', icon:'doc', accept:'.txt'},
+  {id:'csv2pdf', name:'CSV to PDF', desc:'CSV टेबलचा नीट PDF बनवा', cat:'convert', color:'#15803D', icon:'doc', accept:'.csv'},
+  {id:'html2pdf', name:'HTML to PDF', desc:'HTML कोड / वेब मजकुराचा PDF बनवा', cat:'convert', color:'#2563EB', icon:'doc', accept:''},
+  {id:'compress', name:'Compress PDF', desc:'PDF चा आकार कमी करा (इमेज PDF साठी उत्तम)', cat:'edit', color:'#D92323', icon:'zip', accept:'.pdf'},
+  {id:'watermark', name:'Watermark PDF', desc:'प्रत्येक पानावर तुझा मजकूर वॉटरमार्क म्हणून घाला', cat:'edit', color:'#0F766E', icon:'drop', accept:'.pdf'},
+  {id:'number', name:'Number Pages', desc:'PDF च्या पानांना नंबर द्या', cat:'edit', color:'#0F766E', icon:'num', accept:'.pdf'},
+  {id:'crop', name:'Crop PDF', desc:'पानांच्या कडा (मार्जिन) कापा', cat:'edit', color:'#0F766E', icon:'crop', accept:'.pdf'},
+  {id:'redact', name:'Redact PDF', desc:'आधार नंबर, नाव अशी माहिती काळ्या पट्टीने झाका', cat:'edit', color:'#111827', icon:'edit', accept:'.pdf'},
+  {id:'annotate', name:'PDF Annotator', desc:'PDF च्या पानावर टीप / मजकूर लिहा', cat:'edit', color:'#0F766E', icon:'edit', accept:'.pdf'},
+  {id:'reader', name:'PDF Reader', desc:'PDF ब्राउझरमध्येच उघडून वाचा', cat:'view', color:'#0891B2', icon:'eye', accept:'.pdf'},
+  {id:'sign', name:'Sign PDF', desc:'तुझी सही काढा आणि PDF वर लावा', cat:'view', color:'#DB2777', icon:'sign', accept:'.pdf'},
+  {id:'share', name:'Share PDF', desc:'PDF WhatsApp / इतर अ‍ॅपवर शेअर करा', cat:'view', color:'#0891B2', icon:'share', accept:'.pdf'},
+  {id:'scanner', name:'PDF Scanner', desc:'कॅमेराने फोटो काढा आणि PDF बनवा', cat:'view', color:'#1D4ED8', icon:'cam', accept:''},
+];
+const CATS = [
+  {id:'all', label:'सर्व टूल्स'},
+  {id:'organize', label:'📂 व्यवस्था (Organize)'},
+  {id:'convert', label:'🔄 रूपांतर (Convert)'},
+  {id:'edit', label:'✏️ संपादन (Edit)'},
+  {id:'view', label:'👁️ पहा व सही (View & Sign)'},
+];
+
+/* ============ HOME GRID ============ */
+let activeCat = 'all', query = '';
+const gridEl = document.getElementById('tools'), filtersEl = document.getElementById('filters');
+CATS.forEach(c=>{
+  const b=document.createElement('button'); b.className='chip'+(c.id==='all'?' active':''); b.textContent=c.label;
+  b.onclick=()=>{activeCat=c.id; document.querySelectorAll('.chip').forEach(x=>x.classList.remove('active')); b.classList.add('active'); renderGrid();};
+  filtersEl.appendChild(b);
+});
+function renderGrid(){
+  gridEl.innerHTML=''; let n=0;
+  TOOLS.filter(t=>(activeCat==='all'||t.cat===activeCat) && (t.name.toLowerCase().includes(query)||t.desc.includes(query))).forEach(t=>{
+    n++;
+    const card=document.createElement('button'); card.className='tool-card';
+    card.innerHTML=`<div class="tool-ic" style="background:${t.color}"><svg width="24" height="24" viewBox="0 0 24 24">${ICONS[t.icon]||ICONS.doc}</svg></div><h3>${t.name}</h3><p>${t.desc}</p><div class="tool-meta"><span class="free">१००% फ्री</span><span class="arrow">उघडा →</span></div>`;
+    card.onclick=()=>openTool(t.id);
+    gridEl.appendChild(card);
+  });
+  document.getElementById('noResult').classList.toggle('hidden', n>0);
+}
+document.getElementById('searchInput').addEventListener('input', e=>{query=e.target.value.trim().toLowerCase(); renderGrid();});
+renderGrid();
+
+/* ============ WORKSPACE COMMON ============ */
+let curTool=null, files=[], pdfBytes=null, pdfJsDoc=null, selectedPages=new Set(), pageOrder=[];
+const ws=document.getElementById('workspace'), wsBody=document.getElementById('wsBody'), wsResult=document.getElementById('wsResult');
+const statusBox=document.getElementById('statusBox'), progWrap=document.getElementById('progWrap'), progBar=document.getElementById('progBar');
+function setStatus(msg,type){ statusBox.textContent=msg; statusBox.className='status show '+(type||'info'); }
+function clearStatus(){ statusBox.className='status'; wsResult.innerHTML=''; }
+function setProgress(p){ progWrap.style.display='block'; progBar.style.width=(p*100)+'%'; if(p>=1) setTimeout(()=>progWrap.style.display='none',600); }
+function download(blob,name){ const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href),4000); }
+function resultBtn(blob,name,label){ wsResult.innerHTML=''; const d=document.createElement('div'); d.className='btn-row'; const b=document.createElement('button'); b.className='btn btn-red'; b.textContent=label||('⬇️ डाउनलोड — '+name); b.onclick=()=>download(blob,name); d.appendChild(b); wsResult.appendChild(d); }
+function fmtSize(b){ return b<1024?b+' B':b<1048576?(b/1024).toFixed(1)+' KB':(b/1048576).toFixed(2)+' MB'; }
+
+document.getElementById('backBtn').onclick=()=>{ ws.classList.remove('open'); document.getElementById('homeHero').style.display=''; gridEl.style.display=''; document.getElementById('filters').style.display=''; document.getElementById('howSection').style.display=''; window.scrollTo({top:0,behavior:'smooth'}); stopCam(); };
+
+function openTool(id){
+  curTool = TOOLS.find(t=>t.id===id); files=[]; pdfBytes=null; pdfJsDoc=null; selectedPages=new Set(); pageOrder=[]; clearStatus();
+  document.getElementById('wsTitle').textContent = curTool.name;
+  document.getElementById('wsDesc').textContent = curTool.desc;
+  document.getElementById('homeHero').style.display='none'; gridEl.style.display='none'; document.getElementById('filters').style.display='none'; document.getElementById('howSection').style.display='none';
+  ws.classList.add('open'); window.scrollTo({top:0,behavior:'smooth'});
+  buildToolUI();
+}
+
+function dropzoneHTML(hint){
+  return `<div class="dropzone" id="dz"><div style="font-size:34px">📄</div><strong>फाईल इथे ड्रॅग करा किंवा क्लिक करून निवडा</strong><span>${hint||''}</span></div><div class="filelist" id="fileList"></div>`;
+}
+function bindDropzone(accept, multi, onFiles){
+  const dz=document.getElementById('dz'), picker=document.getElementById('filePicker');
+  picker.accept=accept||''; picker.multiple=!!multi; picker.value='';
+  dz.onclick=()=>picker.click();
+  dz.ondragover=e=>{e.preventDefault();dz.classList.add('drag')};
+  dz.ondragleave=()=>dz.classList.remove('drag');
+  dz.ondrop=e=>{e.preventDefault();dz.classList.remove('drag'); onFiles([...e.dataTransfer.files]);};
+  picker.onchange=()=>{ onFiles([...picker.files]); picker.value=''; };
+}
+function showFileList(extra){
+  const el=document.getElementById('fileList'); if(!el) return;
+  el.innerHTML = files.map((f,i)=>`<div class="fileitem"><span>📄</span><b>${f.name}</b><span>${fmtSize(f.size)}</span>${extra?extra(i):''}<button data-rm="${i}">काढा ✕</button></div>`).join('');
+  el.querySelectorAll('[data-rm]').forEach(b=>b.onclick=()=>{ files.splice(+b.dataset.rm,1); showFileList(extra); onFilesChanged(); });
+}
+async function loadPdfFromFile(file){
+  if(!libsReady()) throw new Error('PDF लायब्ररी लोड झाली नाही — इंटरनेट तपासून पेज रिफ्रेश करा.');
+  pdfBytes = await file.arrayBuffer();
+  pdfJsDoc = await pdfjsLib.getDocument({data: pdfBytes.slice(0)}).promise;
+  return pdfJsDoc.numPages;
+}
+async function renderPageThumbs(container, selectable){
+  container.innerHTML='';
+  for(let i=1;i<=pdfJsDoc.numPages;i++){
+    const page=await pdfJsDoc.getPage(i); const vp=page.getViewport({scale:.35});
+    const wrap=document.createElement('div'); wrap.className='page-thumb'+(selectedPages.has(i-1)?' sel':''); wrap.dataset.idx=i-1;
+    const cv=document.createElement('canvas'); cv.width=vp.width; cv.height=vp.height;
+    await page.render({canvasContext:cv.getContext('2d'),viewport:vp}).promise;
+    wrap.appendChild(cv); const s=document.createElement('span'); s.textContent='पान '+i; wrap.appendChild(s);
+    if(selectable) wrap.onclick=()=>{ const ix=i-1; selectedPages.has(ix)?selectedPages.delete(ix):selectedPages.add(ix); wrap.classList.toggle('sel'); };
+    container.appendChild(wrap);
+  }
+}
+function onFilesChanged(){ /* overridden per tool via window._ofc */ if(window._ofc) window._ofc(); }
+
+/* ============ TOOL UIs ============ */
+function buildToolUI(){
+  window._ofc=null; stopCam();
+  const t=curTool.id;
+  if(t==='merge') return uiMerge();
+  if(t==='jpg2pdf') return uiJpg2Pdf();
+  if(t==='scanner') return uiScanner();
+  if(t==='txt2pdf') return uiTxt();
+  if(t==='csv2pdf') return uiCsv();
+  if(t==='html2pdf') return uiHtml();
+  if(t==='reader') return uiReader();
+  if(t==='sign') return uiSign();
+  if(t==='share') return uiShare();
+  // all single-PDF tools share a loader
+  uiSinglePdf(t);
+}
+
+function uiMerge(){
+  wsBody.innerHTML = dropzoneHTML('२ किंवा जास्त PDF निवडा') + `<div class="btn-row"><button class="btn btn-red" id="goBtn" disabled>🔗 Merge करा आणि PDF बनवा</button></div><p class="note">फाईल्स ज्या क्रमाने दिसत आहेत त्याच क्रमाने जोडल्या जातील. क्रम बदलायचा असेल तर ↑ ↓ वापरा.</p>`;
+  bindDropzone('.pdf', true, fs=>{ files.push(...fs.filter(f=>f.name.toLowerCase().endsWith('.pdf'))); showFileList(i=>`<button data-up="${i}">↑</button><button data-dn="${i}">↓</button>`); wireOrder(); syncGo(); });
+  function wireOrder(){ document.querySelectorAll('[data-up]').forEach(b=>b.onclick=()=>{const i=+b.dataset.up; if(i>0){[files[i-1],files[i]]=[files[i],files[i-1]]; showFileList(x=>`<button data-up="${x}">↑</button><button data-dn="${x}">↓</button>`); wireOrder();}}); document.querySelectorAll('[data-dn]').forEach(b=>b.onclick=()=>{const i=+b.dataset.dn; if(i<files.length-1){[files[i+1],files[i]]=[files[i],files[i+1]]; showFileList(x=>`<button data-up="${x}">↑</button><button data-dn="${x}">↓</button>`); wireOrder();}}); }
+  function syncGo(){ document.getElementById('goBtn').disabled = files.length<2; }
+  window._ofc=syncGo;
+  document.getElementById('goBtn').onclick=async()=>{
+    try{ setStatus('PDF जोडत आहे…','info'); const out=await PDFDocument.create();
+      for(let i=0;i<files.length;i++){ const src=await PDFDocument.load(await files[i].arrayBuffer()); const pages=await out.copyPages(src, src.getPageIndices()); pages.forEach(p=>out.addPage(p)); setProgress((i+1)/files.length); }
+      const bytes=await out.save(); resultBtn(new Blob([bytes],{type:'application/pdf'}),'merged.pdf'); setStatus('✅ तयार आहे! '+out.getPageCount()+' पाने असलेली एकत्र PDF डाउनलोड करा.','ok');
+    }catch(e){ setStatus('❌ चूक झाली: '+e.message+' — फाईल पासवर्ड-प्रोटेक्टेड असेल तर Merge होणार नाही.','err'); }
+  };
+}
+
+function uiSinglePdf(tool){
+  const hints={split:'एक PDF निवडा',rotate:'एक PDF निवडा',delete:'एक PDF निवडा',extract:'एक PDF निवडा',organize:'एक PDF निवडा',pdf2jpg:'एक PDF निवडा',pdf2png:'एक PDF निवडा',compress:'एक PDF निवडा',watermark:'एक PDF निवडा',number:'एक PDF निवडा',crop:'एक PDF निवडा',redact:'एक PDF निवडा',annotate:'एक PDF निवडा'};
+  let extra='';
+  if(tool==='split') extra=`<label class="flabel">कसं Split करायचं?</label><select id="optMode"><option value="each">प्रत्येक पान वेगळं (ZIP डाउनलोड)</option><option value="range">फक्त एक रेंज एका PDF मध्ये</option></select><div id="rangeWrap" class="hidden"><label class="flabel">रेंज (उदा. 1-3 किंवा 2,4,5)</label><input type="text" id="optRange" placeholder="1-3"></div>`;
+  if(tool==='rotate') extra=`<label class="flabel">कोन निवडा</label><select id="optAngle"><option value="90">९०° उजवीकडे</option><option value="180">१८०°</option><option value="270">२७०° (९०° डावीकडे)</option></select><p class="note">खाली पाने निवडा — निवडली नाहीत तर <b>सर्व पानांना</b> लागू होईल.</p><div class="pages-grid" id="pagesGrid"></div>`;
+  if(tool==='delete') extra=`<p class="note">काढायची पाने खाली निवडा (लाल होतील), मग बटण दाबा.</p><div class="pages-grid" id="pagesGrid"></div>`;
+  if(tool==='extract') extra=`<p class="note">नवीन PDF मध्ये हवी असलेली पाने निवडा.</p><div class="pages-grid" id="pagesGrid"></div>`;
+  if(tool==='organize') extra=`<p class="note">प्रत्येक पानाखाली ← → ने क्रम बदला.</p><div class="pages-grid" id="pagesGrid"></div>`;
+  if(tool==='compress') extra=`<label class="flabel">कॉम्प्रेशन प्रकार</label><select id="optLevel"><option value="light">हलकं — मजकूर तसाच राहतो, आकार थोडा कमी</option><option value="strong">जोरदार — पाने फोटोंमध्ये बदलून आकार खूप कमी (स्कॅन PDF साठी उत्तम)</option></select>`;
+  if(tool==='watermark') extra=`<label class="flabel">वॉटरमार्क मजकूर</label><input type="text" id="optText" placeholder="उदा. CONFIDENTIAL किंवा तुझं नाव"><div class="two"><div><label class="flabel">आकार</label><select id="optSize"><option value="40">मध्यम</option><option value="60">मोठा</option><option value="26">छोटा</option></select></div><div><label class="flabel">पारदर्शकता</label><select id="optOp"><option value="0.25">हलका</option><option value="0.45">मध्यम</option><option value="0.7">गडद</option></select></div></div>`;
+  if(tool==='number') extra=`<div class="two"><div><label class="flabel">जागा</label><select id="optPos"><option value="bc">खाली — मध्य</option><option value="br">खाली — उजवीकडे</option><option value="bl">खाली — डावीकडे</option><option value="tc">वर — मध्य</option></select></div><div><label class="flabel">प्रारूप</label><select id="optFmt"><option value="n">फक्त नंबर (1, 2, 3…)</option><option value="nt">Page 1 of 10 प्रकारे</option></select></div></div>`;
+  if(tool==='crop') extra=`<p class="note">चारही बाजूंनी किती % कापायचं ते टाका. (उदा. वरून मोठं हेडर कापायचं असेल तर वर = १०)</p><div class="two"><div><label class="flabel">वरून %</label><input type="number" id="cT" value="0" min="0" max="40"></div><div><label class="flabel">खालून %</label><input type="number" id="cB" value="0" min="0" max="40"></div><div><label class="flabel">डावीकडून %</label><input type="number" id="cL" value="0" min="0" max="40"></div><div><label class="flabel">उजवीकडून %</label><input type="number" id="cR" value="0" min="0" max="40"></div></div>`;
+  if(tool==='redact') extra=`<label class="flabel">पान नंबर</label><input type="number" id="rPage" value="1" min="1"><p class="note">झाकायचा भाग पानाच्या % मध्ये टाका. आधी पान बघून अंदाज घ्या: डावीकडून सुरुवात (X), वरून सुरुवात (Y), रुंदी, उंची.</p><div class="two"><div><label class="flabel">X % (डावीकडून)</label><input type="number" id="rX" value="10"></div><div><label class="flabel">Y % (खालून)</label><input type="number" id="rY" value="10"></div><div><label class="flabel">रुंदी %</label><input type="number" id="rW" value="40"></div><div><label class="flabel">उंची %</label><input type="number" id="rH" value="6"></div></div><div class="viewer" style="margin-top:14px"><canvas id="rPrev"></canvas></div>`;
+  if(tool==='annotate') extra=`<label class="flabel">टीप / मजकूर</label><input type="text" id="aText" placeholder="उदा. तपासले ✓ किंवा तुझी टीप"><div class="two"><div><label class="flabel">पान नंबर</label><input type="number" id="aPage" value="1" min="1"></div><div><label class="flabel">जागा</label><select id="aPos"><option value="tl">वर — डावीकडे</option><option value="tr">वर — उजवीकडे</option><option value="bl">खाली — डावीकडे</option><option value="br">खाली — उजवीकडे</option><option value="c">मध्यभागी</option></select></div></div><p class="note">टीप: इंग्रजी मजकूर उत्तम दिसतो; मराठी अक्षरांसाठी फॉन्ट मर्यादा असू शकते.</p>`;
+  const btnLabels={split:'✂️ Split करा',rotate:'🔄 Rotate करा',delete:'🗑️ निवडलेली पाने काढा',extract:'📄 Extract करा',organize:'✅ याच क्रमाने PDF बनवा',pdf2jpg:'🖼️ JPG बनवा (ZIP)',pdf2png:'🖼️ PNG बनवा (ZIP)',compress:'🗜️ Compress करा',watermark:'💧 Watermark लावा',number:'🔢 नंबर द्या',crop:'✂️ Crop करा',redact:'⬛ Redact करा',annotate:'✏️ टीप लावा'};
+  wsBody.innerHTML = dropzoneHTML(hints[tool]||'PDF निवडा') + extra + `<div class="btn-row"><button class="btn btn-red" id="goBtn" disabled>${btnLabels[tool]||'प्रोसेस करा'}</button></div>`;
+  const goBtn=document.getElementById('goBtn');
+  const modeSel=document.getElementById('optMode');
+  if(modeSel) modeSel.onchange=()=>document.getElementById('rangeWrap').classList.toggle('hidden', modeSel.value!=='range');
+  bindDropzone('.pdf', false, async fs=>{
+    const f=fs.find(x=>x.name.toLowerCase().endsWith('.pdf')); if(!f) return setStatus('कृपया PDF फाईल निवडा.','err');
+    files=[f]; showFileList(); clearStatus();
+    try{ const n=await loadPdfFromFile(f); setStatus('✅ PDF लोड झाली — एकूण '+n+' पाने, आकार '+fmtSize(f.size),'ok'); goBtn.disabled=false;
+      const pg=document.getElementById('pagesGrid');
+      if(pg && tool==='organize'){ pageOrder=[...Array(n).keys()]; await renderOrganize(pg); }
+      else if(pg){ selectedPages=new Set(); await renderPageThumbs(pg,true); }
+      if(tool==='redact') await drawRedactPreview();
+    }catch(e){ setStatus('❌ ही PDF उघडता आली नाही. पासवर्ड-प्रोटेक्टेड PDF वर हे टूल चालत नाही.','err'); }
+  });
+  if(tool==='redact'){ ['rPage','rX','rY','rW','rH'].forEach(id=>{ const el=document.getElementById(id); if(el) el.addEventListener('input', drawRedactPreview); }); }
+  goBtn.onclick=()=>runSingle(tool);
+}
+async function drawRedactPreview(){
+  const cv=document.getElementById('rPrev'); if(!cv||!pdfJsDoc) return;
+  const pn=Math.min(Math.max(1,+document.getElementById('rPage').value||1), pdfJsDoc.numPages);
+  const page=await pdfJsDoc.getPage(pn); const vp=page.getViewport({scale:1.1});
+  cv.width=vp.width; cv.height=vp.height; const ctx=cv.getContext('2d');
+  await page.render({canvasContext:ctx,viewport:vp}).promise;
+  const x=(+document.getElementById('rX').value||0)/100*vp.width, w=(+document.getElementById('rW').value||0)/100*vp.width;
+  const h=(+document.getElementById('rH').value||0)/100*vp.height, yTop=vp.height-((+document.getElementById('rY').value||0)/100*vp.height)-h;
+  ctx.fillStyle='rgba(0,0,0,.9)'; ctx.fillRect(x,yTop,w,h); ctx.strokeStyle='red'; ctx.lineWidth=2; ctx.strokeRect(x,yTop,w,h);
+}
+async function renderOrganize(container){
+  container.innerHTML='';
+  for(const ix of pageOrder){
+    const page=await pdfJsDoc.getPage(ix+1); const vp=page.getViewport({scale:.35});
+    const wrap=document.createElement('div'); wrap.className='page-thumb';
+    const cv=document.createElement('canvas'); cv.width=vp.width; cv.height=vp.height;
+    await page.render({canvasContext:cv.getContext('2d'),viewport:vp}).promise;
+    wrap.appendChild(cv);
+    const s=document.createElement('span'); s.textContent='पान '+(ix+1); wrap.appendChild(s);
+    const row=document.createElement('div'); row.style.cssText='display:flex;gap:6px;justify-content:center;margin-top:6px';
+    const pos=pageOrder.indexOf(ix);
+    const bl=document.createElement('button'); bl.textContent='←'; bl.style.cssText='min-height:36px;padding:4px 12px;border-radius:8px;border:1px solid var(--line);background:var(--card);cursor:pointer;font-weight:800';
+    const br=document.createElement('button'); br.textContent='→'; br.style.cssText=bl.style.cssText;
+    bl.onclick=async()=>{ if(pos>0){ [pageOrder[pos-1],pageOrder[pos]]=[pageOrder[pos],pageOrder[pos-1]]; await renderOrganize(container);} };
+    br.onclick=async()=>{ if(pos<pageOrder.length-1){ [pageOrder[pos+1],pageOrder[pos]]=[pageOrder[pos],pageOrder[pos+1]]; await renderOrganize(container);} };
+    row.appendChild(bl); row.appendChild(br); wrap.appendChild(row); container.appendChild(wrap);
+  }
+}
+function parseRange(str,total){
+  const out=new Set();
+  str.split(',').forEach(part=>{ part=part.trim(); if(!part) return;
+    if(part.includes('-')){ const [a,b]=part.split('-').map(Number); for(let i=Math.min(a,b);i<=Math.max(a,b);i++) if(i>=1&&i<=total) out.add(i-1); }
+    else { const n=Number(part); if(n>=1&&n<=total) out.add(n-1); } });
+  return [...out].sort((a,b)=>a-b);
+}
+async function runSingle(tool){
+  try{
+    const src=await PDFDocument.load(pdfBytes.slice(0));
+    if(tool==='split'){
+      const mode=document.getElementById('optMode').value;
+      if(mode==='range'){ const idx=parseRange(document.getElementById('optRange').value, src.getPageCount()); if(!idx.length) return setStatus('योग्य रेंज टाका, उदा. 1-3','err');
+        const out=await PDFDocument.create(); (await out.copyPages(src,idx)).forEach(p=>out.addPage(p)); resultBtn(new Blob([await out.save()],{type:'application/pdf'}),'split-pages.pdf'); setStatus('✅ '+idx.length+' पानांची नवीन PDF तयार आहे.','ok'); }
+      else { const zip=new JSZip(); for(let i=0;i<src.getPageCount();i++){ const o=await PDFDocument.create(); const [p]=await o.copyPages(src,[i]); o.addPage(p); zip.file('page-'+(i+1)+'.pdf', await o.save()); setProgress((i+1)/src.getPageCount()); }
+        resultBtn(await zip.generateAsync({type:'blob'}),'split-pages.zip','⬇️ डाउनलोड ZIP ('+src.getPageCount()+' PDF)'); setStatus('✅ प्रत्येक पानाची वेगळी PDF ZIP मध्ये तयार आहे.','ok'); }
+    }
+    else if(tool==='rotate'){ const ang=+document.getElementById('optAngle').value; const idx=selectedPages.size?[...selectedPages]:src.getPageIndices(); idx.forEach(i=>{ const p=src.getPage(i); p.setRotation(degrees(((p.getRotation().angle||0)+ang)%360)); }); resultBtn(new Blob([await src.save()],{type:'application/pdf'}),'rotated.pdf'); setStatus('✅ '+idx.length+' पाने फिरवली.','ok'); }
+    else if(tool==='delete'){ if(!selectedPages.size) return setStatus('काढायची पाने आधी निवडा.','err'); if(selectedPages.size>=src.getPageCount()) return setStatus('सर्व पाने काढता येत नाहीत — किमान १ पान ठेवा.','err');
+      [...selectedPages].sort((a,b)=>b-a).forEach(i=>src.removePage(i)); resultBtn(new Blob([await src.save()],{type:'application/pdf'}),'pages-deleted.pdf'); setStatus('✅ पाने काढली. आता '+src.getPageCount()+' पाने उरली.','ok'); }
+    else if(tool==='extract'){ if(!selectedPages.size) return setStatus('काढायची (extract) पाने आधी निवडा.','err'); const out=await PDFDocument.create(); (await out.copyPages(src,[...selectedPages].sort((a,b)=>a-b))).forEach(p=>out.addPage(p)); resultBtn(new Blob([await out.save()],{type:'application/pdf'}),'extracted.pdf'); setStatus('✅ '+out.getPageCount()+' पानांची PDF तयार आहे.','ok'); }
+    else if(tool==='organize'){ const out=await PDFDocument.create(); (await out.copyPages(src,pageOrder)).forEach(p=>out.addPage(p)); resultBtn(new Blob([await out.save()],{type:'application/pdf'}),'organized.pdf'); setStatus('✅ नवीन क्रमाची PDF तयार आहे.','ok'); }
+    else if(tool==='pdf2jpg'||tool==='pdf2png'){ const type=tool==='pdf2jpg'?'jpeg':'png', ext=type==='jpeg'?'jpg':'png'; const zip=new JSZip();
+      for(let i=1;i<=pdfJsDoc.numPages;i++){ const page=await pdfJsDoc.getPage(i); const vp=page.getViewport({scale:2}); const cv=document.createElement('canvas'); cv.width=vp.width; cv.height=vp.height; await page.render({canvasContext:cv.getContext('2d'),viewport:vp}).promise; const blob=await new Promise(r=>cv.toBlob(r,'image/'+type,.92)); zip.file('page-'+i+'.'+ext, blob); setProgress(i/pdfJsDoc.numPages); }
+      resultBtn(await zip.generateAsync({type:'blob'}),'pdf-pages-'+ext+'.zip','⬇️ डाउनलोड ZIP ('+pdfJsDoc.numPages+' फोटो)'); setStatus('✅ सर्व पाने '+ext.toUpperCase()+' मध्ये बदलली.','ok'); }
+    else if(tool==='compress'){ const level=document.getElementById('optLevel').value; const before=pdfBytes.byteLength; let outBytes;
+      if(level==='light'){ outBytes=await src.save({useObjectStreams:true}); }
+      else { const out=await PDFDocument.create(); for(let i=1;i<=pdfJsDoc.numPages;i++){ const page=await pdfJsDoc.getPage(i); const vp=page.getViewport({scale:1.6}); const cv=document.createElement('canvas'); cv.width=vp.width; cv.height=vp.height; const cx=cv.getContext('2d'); cx.fillStyle='#fff'; cx.fillRect(0,0,cv.width,cv.height); await page.render({canvasContext:cx,viewport:vp}).promise; const jpg=await new Promise(r=>cv.toBlob(r,'image/jpeg',.72)); const img=await out.embedJpg(await jpg.arrayBuffer()); const pg=out.addPage([vp.width,vp.height]); pg.drawImage(img,{x:0,y:0,width:vp.width,height:vp.height}); setProgress(i/pdfJsDoc.numPages); } outBytes=await out.save(); }
+      resultBtn(new Blob([outBytes],{type:'application/pdf'}),'compressed.pdf'); const red=Math.max(0,Math.round((1-outBytes.length/before)*100)); setStatus('✅ आधी: '+fmtSize(before)+' → आता: '+fmtSize(outBytes.length)+' ('+red+'% कमी)','ok'); }
+    else if(tool==='watermark'){ const text=document.getElementById('optText').value.trim(); if(!text) return setStatus('वॉटरमार्क मजकूर टाका.','err'); const size=+document.getElementById('optSize').value, op=+document.getElementById('optOp').value; const font=await src.embedFont(StandardFonts.HelveticaBold);
+      src.getPages().forEach(p=>{ const {width,height}=p.getSize(); p.drawText(text,{x:width/2-(text.length*size*.32), y:height/2, size, font, color:rgb(.55,.55,.6), opacity:op, rotate:degrees(35)}); }); resultBtn(new Blob([await src.save()],{type:'application/pdf'}),'watermarked.pdf'); setStatus('✅ वॉटरमार्क लागला. (इंग्रजी मजकूर सर्वोत्तम दिसतो)','ok'); }
+    else if(tool==='number'){ const pos=document.getElementById('optPos').value, f=document.getElementById('optFmt').value; const font=await src.embedFont(StandardFonts.Helvetica); const total=src.getPageCount();
+      src.getPages().forEach((p,i)=>{ const {width,height}=p.getSize(); const label=f==='nt'?('Page '+(i+1)+' of '+total):String(i+1); const w=font.widthOfTextAtSize(label,11); let x=width/2-w/2, y=22; if(pos==='br'){x=width-w-30;} if(pos==='bl'){x=30;} if(pos==='tc'){y=height-28;} p.drawText(label,{x,y,size:11,font,color:rgb(.25,.25,.25)}); }); resultBtn(new Blob([await src.save()],{type:'application/pdf'}),'numbered.pdf'); setStatus('✅ '+total+' पानांना नंबर दिले.','ok'); }
+    else if(tool==='crop'){ const T=+document.getElementById('cT').value||0,B=+document.getElementById('cB').value||0,L=+document.getElementById('cL').value||0,R=+document.getElementById('cR').value||0;
+      src.getPages().forEach(p=>{ const {width,height}=p.getSize(); p.setCropBox(L/100*width, B/100*height, width*(1-(L+R)/100), height*(1-(T+B)/100)); }); resultBtn(new Blob([await src.save()],{type:'application/pdf'}),'cropped.pdf'); setStatus('✅ Crop झाला. काही viewers मध्ये crop फक्त दिसण्यापुरता असतो — प्रिंटमध्येही लागू होतो.','ok'); }
+    else if(tool==='redact'){ const pn=(+document.getElementById('rPage').value||1)-1; if(pn<0||pn>=src.getPageCount()) return setStatus('पान नंबर चुकीचा आहे.','err'); const p=src.getPage(pn); const {width,height}=p.getSize();
+      const x=+document.getElementById('rX').value/100*width, y=+document.getElementById('rY').value/100*height, w=+document.getElementById('rW').value/100*width, h=+document.getElementById('rH').value/100*height;
+      p.drawRectangle({x,y,width:w,height:h,color:rgb(0,0,0)}); resultBtn(new Blob([await src.save()],{type:'application/pdf'}),'redacted.pdf'); setStatus('⚠️ पट्टी लावली आहे. टीप: ही पट्टी खालचा मजकूर झाकते; अतिसंवेदनशील कागदपत्रांसाठी पट्टी लावलेलं पान फोटो स्वरूपात वापरणं अधिक सुरक्षित.','info'); }
+    else if(tool==='annotate'){ const text=document.getElementById('aText').value.trim(); if(!text) return setStatus('टीप लिहा.','err'); const pn=(+document.getElementById('aPage').value||1)-1; if(pn<0||pn>=src.getPageCount()) return setStatus('पान नंबर चुकीचा आहे.','err'); const font=await src.embedFont(StandardFonts.HelveticaBold); const p=src.getPage(pn); const {width,height}=p.getSize(); const pos=document.getElementById('aPos').value; const w=font.widthOfTextAtSize(text,14); let x=24,y=height-36; if(pos==='tr'){x=width-w-24;} if(pos==='bl'){y=24;} if(pos==='br'){x=width-w-24;y=24;} if(pos==='c'){x=width/2-w/2;y=height/2;} p.drawText(text,{x,y,size:14,font,color:rgb(.85,.05,.05)}); resultBtn(new Blob([await src.save()],{type:'application/pdf'}),'annotated.pdf'); setStatus('✅ टीप लावली.','ok'); }
+  }catch(e){ setStatus('❌ चूक झाली: '+e.message,'err'); }
+}
+
+function uiJpg2Pdf(){
+  wsBody.innerHTML = dropzoneHTML('JPG / PNG फोटो निवडा — कितीही') + `<label class="flabel">पानाचा आकार</label><select id="optSize"><option value="a4">A4 पान (फोटो मध्यभागी)</option><option value="fit">फोटोच्या आकाराचंच पान</option></select><div class="btn-row"><button class="btn btn-red" id="goBtn" disabled>📄 PDF बनवा</button></div>`;
+  bindDropzone('image/*', true, fs=>{ files.push(...fs.filter(f=>f.type.startsWith('image/'))); showFileList(i=>`<button data-up="${i}">↑</button><button data-dn="${i}">↓</button>`); wireImgOrder(); sync(); });
+  function wireImgOrder(){ document.querySelectorAll('[data-up]').forEach(b=>b.onclick=()=>{const i=+b.dataset.up; if(i>0){[files[i-1],files[i]]=[files[i],files[i-1]]; showFileList(x=>`<button data-up="${x}">↑</button><button data-dn="${x}">↓</button>`); wireImgOrder();}}); document.querySelectorAll('[data-dn]').forEach(b=>b.onclick=()=>{const i=+b.dataset.dn; if(i<files.length-1){[files[i+1],files[i]]=[files[i],files[i+1]]; showFileList(x=>`<button data-up="${x}">↑</button><button data-dn="${x}">↓</button>`); wireImgOrder();}}); }
+  function sync(){ document.getElementById('goBtn').disabled=!files.length; } window._ofc=sync;
+  document.getElementById('goBtn').onclick=async()=>{ try{ setStatus('PDF बनवत आहे…','info'); const out=await PDFDocument.create(); const mode=document.getElementById('optSize').value;
+    for(let i=0;i<files.length;i++){ const url=URL.createObjectURL(files[i]); const imgEl=await new Promise((res,rej)=>{const im=new Image(); im.onload=()=>res(im); im.onerror=rej; im.src=url;}); const cv=document.createElement('canvas'); cv.width=imgEl.naturalWidth; cv.height=imgEl.naturalHeight; cv.getContext('2d').drawImage(imgEl,0,0); URL.revokeObjectURL(url); const jpg=await new Promise(r=>cv.toBlob(r,'image/jpeg',.92)); const emb=await out.embedJpg(await jpg.arrayBuffer());
+      if(mode==='fit'){ const pg=out.addPage([emb.width,emb.height]); pg.drawImage(emb,{x:0,y:0,width:emb.width,height:emb.height}); }
+      else { const pg=out.addPage([595,842]); const s=Math.min(555/emb.width,802/emb.height); const w=emb.width*s,h=emb.height*s; pg.drawImage(emb,{x:(595-w)/2,y:(842-h)/2,width:w,height:h}); } setProgress((i+1)/files.length); }
+    resultBtn(new Blob([await out.save()],{type:'application/pdf'}),'images.pdf'); setStatus('✅ '+files.length+' फोटोंचा PDF तयार आहे.','ok'); }catch(e){ setStatus('❌ चूक झाली: '+e.message,'err'); } };
+}
+
+function uiReader(){
+  wsBody.innerHTML = dropzoneHTML('वाचायची PDF निवडा') + `<div class="viewer hidden" id="viewerWrap" style="margin-top:16px"><canvas id="viewCanvas"></canvas><div class="btn-row" style="justify-content:center"><button class="btn btn-ghost" id="prevBtn">← मागचं पान</button><span id="pageInfo" style="align-self:center;font-weight:700"></span><button class="btn btn-ghost" id="nextBtn">पुढचं पान →</button><button class="btn btn-ghost" id="zoomBtn">🔍 मोठं करा</button></div></div>`;
+  let cur=1, scale=1.3;
+  async function draw(){ if(!pdfJsDoc) return; const page=await pdfJsDoc.getPage(cur); const vp=page.getViewport({scale}); const cv=document.getElementById('viewCanvas'); cv.width=vp.width; cv.height=vp.height; await page.render({canvasContext:cv.getContext('2d'),viewport:vp}).promise; document.getElementById('pageInfo').textContent='पान '+cur+' / '+pdfJsDoc.numPages; }
+  bindDropzone('.pdf', false, async fs=>{ const f=fs[0]; if(!f) return; files=[f]; showFileList(); try{ await loadPdfFromFile(f); cur=1; document.getElementById('viewerWrap').classList.remove('hidden'); await draw(); setStatus('✅ PDF उघडली. एकूण '+pdfJsDoc.numPages+' पाने.','ok'); }catch(e){ setStatus('❌ PDF उघडता आली नाही.','err'); } });
+  document.getElementById('prevBtn').onclick=()=>{ if(cur>1){cur--; draw();} };
+  document.getElementById('nextBtn').onclick=()=>{ if(pdfJsDoc&&cur<pdfJsDoc.numPages){cur++; draw();} };
+  document.getElementById('zoomBtn').onclick=()=>{ scale=scale>=2.2?1.1:scale+.4; draw(); };
+}
+
+function uiSign(){
+  wsBody.innerHTML = dropzoneHTML('सही करायची PDF निवडा') + `<label class="flabel">इथे बोटाने / माऊसने सही काढा</label><canvas class="sigpad" id="sigPad" width="700" height="200"></canvas><div class="btn-row"><button class="btn btn-ghost" id="clearSig">सही पुसा</button></div><label class="flabel">सही कुठल्या पानावर?</label><select id="sigPage"><option value="last">शेवटचं पान</option><option value="first">पहिलं पान</option></select><div class="btn-row"><button class="btn btn-red" id="goBtn" disabled>✍️ सही लावून PDF बनवा</button></div>`;
+  const pad=document.getElementById('sigPad'), ctx=pad.getContext('2d'); ctx.lineWidth=2.5; ctx.lineCap='round'; ctx.strokeStyle='#111';
+  let drawing=false, hasSig=false, last=null;
+  function pos(e){ const r=pad.getBoundingClientRect(); const t=e.touches?e.touches[0]:e; return {x:(t.clientX-r.left)*(pad.width/r.width), y:(t.clientY-r.top)*(pad.height/r.height)}; }
+  function start(e){ drawing=true; last=pos(e); e.preventDefault(); } function move(e){ if(!drawing) return; const p=pos(e); ctx.beginPath(); ctx.moveTo(last.x,last.y); ctx.lineTo(p.x,p.y); ctx.stroke(); last=p; hasSig=true; sync(); e.preventDefault(); } function end(){ drawing=false; }
+  pad.addEventListener('mousedown',start); pad.addEventListener('mousemove',move); window.addEventListener('mouseup',end);
+  pad.addEventListener('touchstart',start,{passive:false}); pad.addEventListener('touchmove',move,{passive:false}); pad.addEventListener('touchend',end);
+  document.getElementById('clearSig').onclick=()=>{ ctx.clearRect(0,0,pad.width,pad.height); hasSig=false; sync(); };
+  function sync(){ document.getElementById('goBtn').disabled=!(files.length&&hasSig); } window._ofc=sync;
+  bindDropzone('.pdf', false, async fs=>{ const f=fs[0]; if(!f) return; files=[f]; showFileList(); try{ await loadPdfFromFile(f); setStatus('✅ PDF लोड झाली ('+pdfJsDoc.numPages+' पाने). आता सही काढा.','ok'); }catch(e){ setStatus('❌ PDF उघडता आली नाही.','err'); } sync(); });
+  document.getElementById('goBtn').onclick=async()=>{ try{ const src=await PDFDocument.load(pdfBytes.slice(0)); const pngBytes=await new Promise(r=>pad.toBlob(async b=>r(await b.arrayBuffer()),'image/png')); const img=await src.embedPng(pngBytes); const idx=document.getElementById('sigPage').value==='first'?0:src.getPageCount()-1; const p=src.getPage(idx); const {width}=p.getSize(); const w=Math.min(200,width*.4), h=w*(img.height/img.width); p.drawImage(img,{x:width-w-36,y:36,width:w,height:h}); resultBtn(new Blob([await src.save()],{type:'application/pdf'}),'signed.pdf'); setStatus('✅ सही लागली! PDF डाउनलोड करा.','ok'); }catch(e){ setStatus('❌ चूक झाली: '+e.message,'err'); } };
+}
+
+function uiShare(){
+  wsBody.innerHTML = dropzoneHTML('शेअर करायची PDF निवडा') + `<div class="btn-row"><button class="btn btn-red" id="shareBtn" disabled>📤 WhatsApp / इतर अ‍ॅपवर शेअर करा</button><button class="btn btn-ghost" id="dlBtn" disabled>⬇️ डाउनलोड</button></div><p class="note">शेअर बटण तुझ्या फोनचं नेहमीचं शेअर मेनू उघडतं — तिथून WhatsApp, Gmail, Drive काहीही निवडता येतं.</p>`;
+  bindDropzone('.pdf', false, fs=>{ const f=fs[0]; if(!f) return; files=[f]; showFileList(); document.getElementById('shareBtn').disabled=false; document.getElementById('dlBtn').disabled=false; setStatus('✅ "'+f.name+'" शेअर करायला तयार आहे ('+fmtSize(f.size)+').','ok'); });
+  document.getElementById('dlBtn').onclick=()=>{ if(files[0]) download(files[0], files[0].name); };
+  document.getElementById('shareBtn').onclick=async()=>{ const f=files[0]; if(!f) return; const file=new File([f], f.name, {type:'application/pdf'});
+    if(navigator.canShare && navigator.canShare({files:[file]})){ try{ await navigator.share({files:[file], title:f.name}); setStatus('✅ शेअर मेनू उघडला.','ok'); }catch(e){} }
+    else setStatus('⚠️ या ब्राउझरमध्ये थेट फाईल-शेअर चालत नाही. आधी डाउनलोड करा, मग WhatsApp मध्ये attach करा.','info'); };
+}
+
+function uiTxt(){
+  wsBody.innerHTML = `<label class="flabel">मजकूर इथे लिहा / पेस्ट करा — किंवा खाली .txt फाईल निवडा</label><textarea id="txtInput" placeholder="इथे मजकूर लिहा… (इंग्रजी मजकूर सर्वोत्तम दिसतो)"></textarea>` + dropzoneHTML('.txt फाईल निवडा (ऐच्छिक)') + `<div class="btn-row"><button class="btn btn-red" id="goBtn">📄 PDF बनवा</button></div>`;
+  bindDropzone('.txt', false, async fs=>{ const f=fs[0]; if(!f) return; files=[f]; showFileList(); document.getElementById('txtInput').value = await f.text(); setStatus('✅ फाईलचा मजकूर घेतला.','ok'); });
+  document.getElementById('goBtn').onclick=async()=>{ const text=document.getElementById('txtInput').value.trim(); if(!text) return setStatus('आधी मजकूर लिहा.','err');
+    try{ const out=await PDFDocument.create(); const font=await out.embedFont(StandardFonts.Helvetica); const size=12, lh=19, margin=50, maxW=595-margin*2;
+      function wrap(line){ const words=line.split(/\s+/); const lines=[]; let cur=''; words.forEach(w=>{ const test=cur?cur+' '+w:w; if(font.widthOfTextAtSize(test,size)>maxW){ if(cur) lines.push(cur); cur=w; } else cur=test; }); if(cur) lines.push(cur); return lines.length?lines:['']; }
+      let page=out.addPage([595,842]); let y=842-margin;
+      text.split('\n').forEach(raw=>{ wrap(raw).forEach(l=>{ if(y<margin){ page=out.addPage([595,842]); y=842-margin; } page.drawText(l,{x:margin,y,size,font,color:rgb(.1,.1,.1)}); y-=lh; }); });
+      resultBtn(new Blob([await out.save()],{type:'application/pdf'}),'text.pdf'); setStatus('✅ PDF तयार आहे — '+out.getPageCount()+' पाने.','ok'); }catch(e){ setStatus('❌ चूक: '+e.message+' — मराठी अक्षरं या फॉन्टमध्ये दिसणार नाहीत, इंग्रजी मजकूर वापरा.','err'); } };
+}
+function uiCsv(){
+  wsBody.innerHTML = dropzoneHTML('.csv फाईल निवडा') + `<div class="btn-row"><button class="btn btn-red" id="goBtn" disabled>📄 PDF बनवा</button></div><p class="note">पहिली ओळ हेडर म्हणून ठळक दिसेल. मोठ्या टेबलसाठी पान आडवं (landscape) घेतलं जातं.</p>`;
+  let rows=null;
+  bindDropzone('.csv', false, async fs=>{ const f=fs[0]; if(!f) return; files=[f]; showFileList(); const text=await f.text();
+    rows=text.split(/\r?\n/).filter(r=>r.trim()).map(r=>r.split(/,(?=(?:[^"]*"[^"]*")*[^"]*$)/).map(c=>c.replace(/^"|"$/g,'').trim()));
+    document.getElementById('goBtn').disabled=false; setStatus('✅ CSV घेतली — '+rows.length+' ओळी, '+rows[0].length+' कॉलम.','ok'); });
+  document.getElementById('goBtn').onclick=async()=>{ try{ const out=await PDFDocument.create(); const font=await out.embedFont(StandardFonts.Helvetica); const bold=await out.embedFont(StandardFonts.HelveticaBold); const cols=rows[0].length; const W=842,H=595,m=36; const colW=(W-m*2)/cols; const rowH=22; let page=out.addPage([W,H]); let y=H-m-rowH;
+    rows.forEach((r,ri)=>{ if(y<m){ page=out.addPage([W,H]); y=H-m-rowH; } r.forEach((c,ci)=>{ const x=m+ci*colW; page.drawRectangle({x,y,width:colW,height:rowH,borderColor:rgb(.7,.7,.7),borderWidth:.5,color:ri===0?rgb(.93,.93,.95):undefined}); let label=String(c); while(font.widthOfTextAtSize(label,9)>colW-8&&label.length) label=label.slice(0,-1); page.drawText(label,{x:x+4,y:y+7,size:9,font:ri===0?bold:font,color:rgb(.1,.1,.1)}); }); y-=rowH; });
+    resultBtn(new Blob([await out.save()],{type:'application/pdf'}),'table.pdf'); setStatus('✅ टेबल PDF तयार आहे.','ok'); }catch(e){ setStatus('❌ चूक झाली: '+e.message,'err'); } };
+}
+function uiHtml(){
+  wsBody.innerHTML = `<label class="flabel">HTML कोड किंवा साधा मजकूर पेस्ट करा</label><textarea id="htmlInput" placeholder="<h1>माझं पान</h1><p>इथे मजकूर…</p>"></textarea><label class="flabel">झलक (Preview)</label><div id="htmlPrev" style="background:#fff;color:#111;border:1px solid var(--line);border-radius:12px;padding:20px;min-height:120px"><p style="color:#888">वर मजकूर टाकला की इथे दिसेल…</p></div><div class="btn-row"><button class="btn btn-red" id="goBtn">📄 PDF बनवा</button></div>`;
+  const inp=document.getElementById('htmlInput'), prev=document.getElementById('htmlPrev');
+  inp.addEventListener('input',()=>{ prev.innerHTML=inp.value||'<p style="color:#888">वर मजकूर टाकला की इथे दिसेल…</p>'; });
+  document.getElementById('goBtn').onclick=async()=>{ if(!inp.value.trim()) return setStatus('आधी HTML / मजकूर टाका.','err');
+    try{ setStatus('PDF बनवत आहे…','info'); const canvas=await html2canvas(prev,{scale:2,backgroundColor:'#ffffff'}); const { jsPDF }=window.jspdf; const doc=new jsPDF({unit:'pt',format:'a4'}); const pw=595, ph=842; const ih=canvas.height*(pw/canvas.width); doc.addImage(canvas.toDataURL('image/jpeg',.92),'JPEG',0,0,pw,Math.min(ih,ph)); if(ih>ph) setStatus('⚠️ मजकूर एका पानापेक्षा मोठा आहे — पहिलं पान घेतलं. मजकूर कमी करून पुन्हा प्रयत्न करा.','info'); else setStatus('✅ PDF तयार आहे.','ok'); resultBtn(doc.output('blob'),'html-page.pdf'); }catch(e){ setStatus('❌ चूक झाली: '+e.message,'err'); } };
+}
+
+/* Scanner */
+let camStream=null, scanImages=[];
+function stopCam(){ if(camStream){ camStream.getTracks().forEach(t=>t.stop()); camStream=null; } }
+function uiScanner(){
+  scanImages=[];
+  wsBody.innerHTML = `<video class="cam" id="camVideo" autoplay playsinline></video><div class="btn-row"><button class="btn btn-dark" id="startCam">📷 कॅमेरा सुरू करा</button><button class="btn btn-red" id="snapBtn" disabled>📸 फोटो काढा</button></div><div class="thumbrow" id="scanThumbs"></div><div class="btn-row"><button class="btn btn-red" id="scanPdf" disabled>📄 स्कॅन केलेला PDF बनवा</button></div><p class="note">किंवा गॅलरीतले फोटो वापरायचे असतील तर "JPG to PDF" टूल वापरा.</p>`;
+  const video=document.getElementById('camVideo');
+  document.getElementById('startCam').onclick=async()=>{ try{ camStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}}); video.srcObject=camStream; document.getElementById('snapBtn').disabled=false; setStatus('✅ कॅमेरा सुरू. कागद चौकटीत धरा आणि फोटो काढा.','ok'); }catch(e){ setStatus('❌ कॅमेरा उघडता आला नाही. परवानगी द्या, किंवा JPG to PDF टूल वापरा.','err'); } };
+  document.getElementById('snapBtn').onclick=()=>{ const cv=document.createElement('canvas'); cv.width=video.videoWidth; cv.height=video.videoHeight; cv.getContext('2d').drawImage(video,0,0); cv.toBlob(b=>{ scanImages.push(b); renderScanThumbs(); },'image/jpeg',.92); };
+  function renderScanThumbs(){ const el=document.getElementById('scanThumbs'); el.innerHTML=''; scanImages.forEach((b,i)=>{ const im=document.createElement('img'); im.src=URL.createObjectURL(b); im.title='पान '+(i+1); el.appendChild(im); }); document.getElementById('scanPdf').disabled=!scanImages.length; setStatus('📸 '+scanImages.length+' फोटो घेतले.','info'); }
+  document.getElementById('scanPdf').onclick=async()=>{ try{ const out=await PDFDocument.create(); for(const b of scanImages){ const emb=await out.embedJpg(await b.arrayBuffer()); const pg=out.addPage([595,842]); const s=Math.min(595/emb.width,842/emb.height); const w=emb.width*s,h=emb.height*s; pg.drawImage(emb,{x:(595-w)/2,y:(842-h)/2,width:w,height:h}); } stopCam(); resultBtn(new Blob([await out.save()],{type:'application/pdf'}),'scanned.pdf'); setStatus('✅ स्कॅन PDF तयार आहे — '+scanImages.length+' पाने.','ok'); }catch(e){ setStatus('❌ चूक झाली: '+e.message,'err'); } };
+}
+</script>
+</body>
+</html>
